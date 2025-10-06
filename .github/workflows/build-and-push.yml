@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        container: [containers/wireguard]
+        container: [wireguard]
 
     permissions:
       contents: read
@@ -43,8 +43,8 @@ jobs:
         with:
           image: ghcr.io/${{ github.repository }}/${{ matrix.container }}
           tags: ${{ steps.meta.outputs.tags }}
-          containerfiles: ${{ matrix.container }}/Containerfile
-          context: ${{ matrix.container }}
+          containerfiles: containers/${{ matrix.container }}/Containerfile
+          context: containers/${{ matrix.container }}
 
       - name: Push image
         uses: redhat-actions/push-to-registry@v2
