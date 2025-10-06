@@ -8,29 +8,11 @@ on:
     - cron: '0 2 * * *' # daily at 2AM UTC
 
 jobs:
-  discover:
-    runs-on: ubuntu-latest
-    outputs:
-      containers: ${{ steps.set-matrix.outputs.containers }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - id: set-matrix
-        run: |
-          # Find dirs that contain a Containerfile
-          dirs=$(find containers -mindepth 1 -maxdepth 1 -type d -exec test -f "{}/Containerfile" \; -print)
-
-          # Turn into a compact JSON array
-          json=$(printf '%s\n' $dirs | jq -R . | jq -s -c .)
-
-          echo "containers=$json" >> $GITHUB_OUTPUT
-
   build:
-    needs: discover
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        container: ${{ fromJson(needs.discover.outputs.containers) }}
+        container: [wireguard]
 
     permissions:
       contents: read
@@ -54,7 +36,7 @@ jobs:
           tags: |
             type=raw,value=latest
             type=sha
-            type=date,format=2006.01.02  # yyyy.mm.dd
+            type=raw,value={{date 'YYYY.MM.DD'}}
 
       - name: Build image
         uses: redhat-actions/buildah-build@v2
