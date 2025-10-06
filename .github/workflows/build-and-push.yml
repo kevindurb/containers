@@ -17,8 +17,12 @@ jobs:
 
       - id: set-matrix
         run: |
+          # Find dirs that contain a Containerfile
           dirs=$(find containers -mindepth 1 -maxdepth 1 -type d -exec test -f "{}/Containerfile" \; -print)
-          json=$(printf '%s\n' $dirs | jq -R . | jq -s .)
+
+          # Turn into a compact JSON array
+          json=$(printf '%s\n' $dirs | jq -R . | jq -s -c .)
+
           echo "containers=$json" >> $GITHUB_OUTPUT
 
   build:
