@@ -1,0 +1,27 @@
+---
+version: 3
+
+vars:
+  ARCH: amd64
+
+tasks:
+  default: task --list-all
+
+  build:
+    internal: true
+    requires:
+      vars: [FILE, ARCH]
+    cmd: >
+      podman build
+      --platform linux/{{.ARCH}}
+      -f {{.FILE}}
+      .
+
+  build:*:
+    vars:
+      CONTAINER: '{{index .MATCH 0}}'
+    cmd:
+      task: build
+      vars:
+        FILE: ./containers/{{.CONTAINER}}/Containerfile
+        TAG: '{{.CONTAINER}}'

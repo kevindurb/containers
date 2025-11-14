@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        container: [wireguard]
+        container: [wireguard, dropbox]
 
     permissions:
       contents: read
