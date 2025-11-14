@@ -4,6 +4,9 @@ RUN apt update \
   && apt install -y wget \
   && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /
+RUN useradd -m dropbox
+USER dropbox
+WORKDIR /home/dropbox
+
 RUN wget -O - "https://www.dropbox.com/download?plat=lnx.x86_64" | tar xzf -
-ENTRYPOINT ["/.dropbox-dist/dropboxd"]
+ENTRYPOINT ["/home/dropbox/.dropbox-dist/dropboxd"]
