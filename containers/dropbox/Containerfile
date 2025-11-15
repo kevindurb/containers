@@ -1,8 +1,11 @@
 FROM docker.io/library/debian:12
 
 RUN apt update \
-  && apt install -y wget \
+  && apt install -y wget python3 \
   && rm -rf /var/lib/apt/lists/*
+
+ADD https://www.dropbox.com/download?dl=packages/dropbox.py /usr/bin/dropbox
+RUN chmod +x /usr/bin/dropbox
 
 RUN useradd -m dropbox
 USER dropbox
