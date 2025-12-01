@@ -68,7 +68,8 @@ RUN dnf install --assumeyes \
 		xz \
 		zip \
   	bash-completion \
-    zsh
+    zsh \
+    && dnf clean all
 
 RUN cracklib-packer /usr/share/dict/words
 

@@ -1,0 +1,47 @@
+FROM ghcr.io/kevindurb/fedora-box
+
+RUN dnf install --assumeyes \
+    bat \
+    diff \
+    duf \
+    entr \
+    fastfetch \
+    fzf \
+    gh \
+    git \
+    git-delta \
+    git-extras \
+    go-task \
+    golang \
+    gpg \
+    htop \
+    httpie \
+    jq \
+    k9s \
+    kubectl \
+    lazygit \
+    litecli \
+    lolcat \
+    make \
+    man \
+    mycli \
+    ncdu \
+    neovim \
+    nyancat \
+    pgcli \
+    ping \
+    prettyping \
+    ps \
+    pv \
+    python-pip \
+    python3-pip \
+    ripgrep \
+    ssh \
+    starship \
+    tig \
+    tldr \
+    tmux \
+    wc \
+    yq \
+    zoxide \
+    && dnf clean all
