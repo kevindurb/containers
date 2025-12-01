@@ -1,8 +1,9 @@
 FROM ghcr.io/kevindurb/fedora-box
 
-RUN dnf install --assumeyes \
+RUN dnf copr enable atim/lazygit -y \
+  && dnf copr enable atim/starship -y \
+  && dnf install --assumeyes \
     bat \
-    diff \
     duf \
     entr \
     fastfetch \
@@ -13,7 +14,6 @@ RUN dnf install --assumeyes \
     git-extras \
     go-task \
     golang \
-    gpg \
     htop \
     httpie \
     jq \
@@ -23,7 +23,6 @@ RUN dnf install --assumeyes \
     litecli \
     lolcat \
     make \
-    man \
     mycli \
     ncdu \
     neovim \
@@ -36,7 +35,6 @@ RUN dnf install --assumeyes \
     python-pip \
     python3-pip \
     ripgrep \
-    ssh \
     starship \
     tig \
     tldr \
