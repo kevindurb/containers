@@ -1,0 +1,83 @@
+FROM scratch as host-spawn-amd64
+# renovate: datasource=github-tags depName=host-spawn packageName=1player/host-spawn
+ARG HOST_SPAWN_VERSION=v1.6.2
+ARG MARCH=x86_64
+ADD https://github.com/1player/host-spawn/releases/download/${HOST_SPAWN_VERSION}/host-spawn-${MARCH} /host-spawn
+
+FROM scratch as host-spawn-arm64
+# renovate: datasource=github-tags depName=host-spawn packageName=1player/host-spawn
+ARG HOST_SPAWN_VERSION=v1.6.2
+ARG MARCH=aarch64
+ADD https://github.com/1player/host-spawn/releases/download/${HOST_SPAWN_VERSION}/host-spawn-${MARCH} /host-spawn
+
+FROM quay.io/fedora/fedora:43
+ARG TARGETARCH
+
+# https://github.com/89luca89/distrobox/blob/91d2d77106e41bafdebb0b347eb5716822272217/distrobox-init#L1008
+RUN dnf install --assumeyes \
+		bc \
+		bzip2 \
+		cracklib-dicts \
+		curl \
+		diffutils \
+		dnf-plugins-core \
+		findutils \
+		glibc-all-langpacks \
+		glibc-common \
+		glibc-locale-source \
+		gnupg2 \
+		gnupg2-smime \
+		hostname \
+		iproute \
+		iputils \
+		keyutils \
+		krb5-libs \
+		less \
+		lsof \
+		man-db \
+		man-pages \
+		mesa-dri-drivers \
+		mesa-vulkan-drivers \
+		mtr \
+		ncurses \
+		nss-mdns \
+		openssh-clients \
+		pam \
+		passwd \
+		pigz \
+		pinentry \
+		procps-ng \
+		rsync \
+		shadow-utils \
+		sudo \
+		tcpdump \
+		time \
+		traceroute \
+		tree \
+		tzdata \
+		unzip \
+		util-linux \
+		util-linux-script \
+		vte-profile \
+		vulkan \
+		wget \
+		which \
+		whois \
+		words \
+		xorg-x11-xauth \
+		xz \
+		zip \
+  	bash-completion \
+    zsh
+
+RUN cracklib-packer /usr/share/dict/words
+
+COPY --from=host-spawn-${TARGETARCH} /host-spawn /usr/bin/host-spawn
+
+RUN ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/docker && \
+  ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/flatpak && \
+  ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/podman && \
+  ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/distrobox && \
+  ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/xdg-open && \
+  ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/rpm-ostree && \
+  ln -fs /usr/bin/distrobox-host-exec /usr/local/bin/transactional-update
