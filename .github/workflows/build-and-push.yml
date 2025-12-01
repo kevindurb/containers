@@ -1,15 +1,77 @@
-name: Build and Push Containers
+name: Build and Push Multi-Arch Containers
 
 on:
   push:
+    branches: [main]
+    paths-ignore:
+      - '**/README.md'
+  pull_request:
     branches: [main]
   workflow_dispatch:
   schedule:
     - cron: '0 2 * * *' # daily at 2AM UTC
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build images
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        container: [wireguard, dropbox, taskwarrior]
+        platform: [linux/amd64, linux/arm64]
+        include:
+          - runner: ubuntu-24.04
+            platform: linux/amd64
+          - runner: ubuntu-24.04-arm
+            platform: linux/arm64
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    env:
+      IMAGE: ghcr.io/${{ github.actor }}/${{ matrix.container }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Docker metadata (arch-suffixed tags)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            # arch-specific SHA tag (used later as manifest source)
+            type=sha,suffix=-${{ matrix.arch }}
+            # arch-specific convenience tags on main
+            type=raw,value=latest-${{ matrix.arch }},enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value={{date 'YYYY.MM.DD'}}-${{ matrix.arch }},enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build (native) with Buildah
+        uses: redhat-actions/buildah-build@v2
+        with:
+          platforms: ${{ matrix.platform }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          containerfiles: containers/${{ matrix.container }}/Containerfile
+          context: containers/${{ matrix.container }}
+
+      - name: Push arch image(s)
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          tags: ${{ steps.meta.outputs.tags }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+  manifest:
+    name: Create & push multi-arch manifests
+    needs: build
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         container: [wireguard, dropbox, taskwarrior]
@@ -18,31 +80,54 @@ jobs:
       contents: read
       packages: write
 
+    env:
+      IMAGE: ghcr.io/${{ github.actor }}/${{ matrix.container }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Login to GHCR (Docker)
+        uses: docker/login-action@v3
         with:
-          images: ghcr.io/${{ github.actor }}/${{ matrix.container }}
-          tags: |
-            type=raw,value=latest
-            type=sha
-            type=raw,value={{date 'YYYY.MM.DD'}}
-
-      - name: Build image
-        uses: redhat-actions/buildah-build@v2
-        with:
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          containerfiles: containers/${{ matrix.container }}/Containerfile
-          context: containers/${{ matrix.container }}
-
-      - name: Push image
-        uses: redhat-actions/push-to-registry@v2
-        with:
-          tags: ${{ steps.meta.outputs.tags }}
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Destination (unsuffixed) tags: sha always; latest/date only on main.
+      - name: Docker metadata (dest tags)
+        id: meta_dest
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value={{date 'YYYY.MM.DD'}},enable=${{ github.ref == 'refs/heads/main' }}
+
+      # Recompute arch-specific SHA tags (same config as build, but only sha).
+      - name: Docker metadata (amd64 source tag)
+        id: meta_amd64
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha,suffix=-amd64
+
+      - name: Docker metadata (arm64 source tag)
+        id: meta_arm64
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE }}
+          tags: |
+            type=sha,suffix=-arm64
+
+      # Create & push manifests: combine the arch-specific sha tags
+      # into the unsuffixed destination tags.
+      - name: Create & push multi-arch manifests
+        uses: int128/docker-manifest-create-action@v2
+        with:
+          tags: ${{ steps.meta_dest.outputs.tags }}
+          sources: |
+            ${{ steps.meta_amd64.outputs.tags }}
+            ${{ steps.meta_arm64.outputs.tags }}
