@@ -17,17 +17,12 @@ RUN dnf copr enable atim/lazygit -y \
     htop \
     httpie \
     jq \
-    k9s \
-    kubectl \
     lazygit \
-    litecli \
     lolcat \
     make \
-    mycli \
     ncdu \
     neovim \
     nyancat \
-    pgcli \
     ping \
     prettyping \
     ps \

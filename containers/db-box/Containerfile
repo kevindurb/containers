@@ -1,0 +1,7 @@
+FROM ghcr.io/kevindurb/fedora-box
+
+RUN dnf install --assumeyes \
+    litecli \
+    mycli \
+    pgcli \
+    && dnf clean all

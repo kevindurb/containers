@@ -1,0 +1,5 @@
+FROM ghcr.io/kevindurb/fedora-box
+
+RUN dnf install --assumeyes \
+    ansible \
+    && dnf clean all

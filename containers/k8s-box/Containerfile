@@ -1,0 +1,6 @@
+FROM ghcr.io/kevindurb/fedora-box
+
+RUN dnf install --assumeyes \
+    k9s \
+    kubectl \
+    && dnf clean all

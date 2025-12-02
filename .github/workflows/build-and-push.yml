@@ -22,11 +22,14 @@ jobs:
     strategy:
       matrix:
         container: &containers
-          - wireguard
-          - dropbox
-          - taskwarrior
-          - fedora-box
+          - db-box
           - dev-box
+          - dropbox
+          - fedora-box
+          - k8s-box
+          - ops-box
+          - taskwarrior
+          - wireguard
         arch: [amd64, arm64]
         include:
           - arch: amd64
