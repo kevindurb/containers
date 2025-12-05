@@ -4,6 +4,9 @@ RUN dnf copr enable atim/lazygit -y \
   && dnf copr enable atim/starship -y \
   && dnf install --assumeyes \
     bat \
+    btop \
+    difftastic \
+    direnv \
     duf \
     entr \
     fastfetch \
@@ -21,11 +24,13 @@ RUN dnf copr enable atim/lazygit -y \
     lolcat \
     make \
     ncdu \
+    nebula \
     neovim \
     nyancat \
     ping \
     prettyping \
     ps \
+    pssh \
     pv \
     python-pip \
     python3-pip \
