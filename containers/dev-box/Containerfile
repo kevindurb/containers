@@ -38,6 +38,7 @@ RUN dnf copr enable atim/lazygit -y \
     nebula \
     neovim \
     nyancat \
+    ollama \
     ping \
     prettyping \
     ps \
