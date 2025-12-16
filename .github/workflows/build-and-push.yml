@@ -30,6 +30,7 @@ jobs:
           - ops-box
           - taskwarrior
           - wireguard
+          - yolo-nas
         arch: [amd64, arm64]
         include:
           - arch: amd64
