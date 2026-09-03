@@ -22,15 +22,7 @@ jobs:
     strategy:
       matrix:
         container: &containers
-          - db-box
-          - dev-box
-          - dropbox
-          - fedora-box
           - handbrake-cli
-          - k8s-box
-          - ops-box
-          - taskwarrior
-          - wireguard
         arch: [amd64, arm64]
         include:
           - arch: amd64
