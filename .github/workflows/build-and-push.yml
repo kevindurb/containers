@@ -26,6 +26,7 @@ jobs:
           - dev-box
           - dropbox
           - fedora-box
+          - handbrake-cli
           - k8s-box
           - ops-box
           - taskwarrior
