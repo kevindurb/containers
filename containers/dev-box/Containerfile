@@ -1,6 +1,6 @@
 FROM rust:1.82-slim AS rust
 
-RUN cargo install --locked eza
+RUN cargo install --locked eza@0.23.4
 
 FROM golang:1.25-alpine AS golang
 
