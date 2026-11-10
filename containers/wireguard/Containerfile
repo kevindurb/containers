@@ -1,7 +1,0 @@
-FROM alpine:3.20
-
-RUN apk add --no-cache wireguard-tools iproute2 iptables
-
-COPY ./files/entrypoint.sh /entrypoint.sh
-
-ENTRYPOINT [ "/entrypoint.sh" ]
