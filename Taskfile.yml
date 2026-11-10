@@ -10,10 +10,11 @@ tasks:
   build:
     internal: true
     requires:
-      vars: [FILE, ARCH]
+      vars: [FILE, ARCH, TAG]
     cmd: >
       podman build
       --platform linux/{{.ARCH}}
+      -t {{.TAG}}
       -f {{.FILE}}
       .
 
@@ -24,4 +25,4 @@ tasks:
       task: build
       vars:
         FILE: ./containers/{{.CONTAINER}}/Containerfile
-        TAG: '{{.CONTAINER}}'
+        TAG: '{{.CONTAINER}}:local'
