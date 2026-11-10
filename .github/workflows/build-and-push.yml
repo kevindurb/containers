@@ -23,6 +23,7 @@ jobs:
       matrix:
         container: &containers
           - handbrake-cli
+          - pi-agent
         arch: [amd64, arm64]
         include:
           - arch: amd64

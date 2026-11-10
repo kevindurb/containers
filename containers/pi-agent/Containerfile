@@ -1,0 +1,57 @@
+# Pi coding agent on top of the Agent Sandbox Python runtime.
+#
+# The base image serves the sandbox data plane (uvicorn main:app on :8888),
+# which is what the k8s-agent-sandbox SDKs call for commands.run(). Pi is
+# installed on top and driven through that runtime, either headlessly
+# (`pi -p`) or interactively (`kubectl exec -it ... -- pi`).
+#
+# The base image's CMD (uvicorn main:app) is inherited on purpose; do not set
+# an ENTRYPOINT to `pi`, or the SDK data plane will not start.
+
+FROM node:24-bookworm-slim AS node
+
+FROM registry.k8s.io/agent-sandbox/python-runtime-sandbox:v1.0.10
+
+USER root
+
+# Pi requires Node >= 22.19. Copy Node from the official image instead of
+# piping a NodeSource setup script into bash. The bookworm build is forward
+# compatible with the Debian trixie userspace in the base image.
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+  && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
+# Tools Pi shells out to for repository work, plus curl/ssh for fetching deps
+# and cloning over SSH.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    bash \
+    ca-certificates \
+    curl \
+    git \
+    openssh-client \
+    ripgrep \
+  && rm -rf /var/lib/apt/lists/*
+
+# The base image's UID 1000 is unnamed. Give it a stable home so Pi's config,
+# credentials, and sessions land in ~/.pi/agent, which the PVC backs.
+RUN mkdir -p /home/pi/.pi/agent /workspace \
+  && (getent passwd 1000 >/dev/null \
+    || useradd -M -u 1000 -d /home/pi -s /bin/bash pi) \
+  && chown -R 1000:1000 /home/pi /workspace
+
+RUN npm install -g --ignore-scripts @earendil-works/pi-coding-agent@1.5.2
+
+# Keep /app importable for the inherited `uvicorn main:app` command while
+# running agent commands and file operations from the PVC-backed workspace.
+ENV PYTHONPATH=/app \
+    SANDBOX_BASE_DIR=/workspace \
+    HOME=/home/pi \
+    PI_SKIP_VERSION_CHECK=1
+
+WORKDIR /workspace
+
+USER 1000
+
+EXPOSE 8888
