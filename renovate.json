@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests",
+    ":dependencyDashboard"
+  ],
+  "timezone": "UTC",
+  "schedule": ["before 6am on monday"],
+  "labels": ["renovate", "dependencies"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "packageRules": [
+    {
+      "description": "Group all GitHub Actions bumps into one PR",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions"
+    },
+    {
+      "description": "fedora-box is built by this repo, not consumed from upstream",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/kevindurb/fedora-box"],
+      "enabled": false
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "HOST_SPAWN_VERSION ARG in fedora-box, driven by the existing # renovate: comments",
+      "customType": "regex",
+      "managerFilePatterns": ["/^containers/fedora-box/Containerfile$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+) packageName=(?<packageName>\\S+)\\s+ARG \\w+=(?<currentValue>\\S+)"
+      ]
+    },
+    {
+      "description": "eza cargo pin in dev-box",
+      "customType": "regex",
+      "managerFilePatterns": ["/^containers/dev-box/Containerfile$/"],
+      "matchStrings": ["cargo install --locked eza@(?<currentValue>\\d+\\.\\d+\\.\\d+)"],
+      "datasourceTemplate": "crate",
+      "depNameTemplate": "eza",
+      "versioningTemplate": "semver-coerced"
+    }
+  ]
+}
