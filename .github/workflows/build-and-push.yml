@@ -42,11 +42,11 @@ jobs:
       IMAGE: ghcr.io/${{ github.actor }}/${{ matrix.container }}
 
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Docker metadata (arch-suffixed tags)
         id: meta
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           images: ${{ env.IMAGE }}
           tags: |
@@ -57,7 +57,7 @@ jobs:
             type=raw,value={{date 'YYYY.MM.DD'}}-${{ matrix.arch }},enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build (native) with Buildah
-        uses: redhat-actions/buildah-build@9dc2ade9b5db229966b5025ae266311e12f349c4 # v2
+        uses: redhat-actions/buildah-build@719e3c40d8af9790c23eca13f7daa339f2867034 # v3
         with:
           platforms: ${{ matrix.platform }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -66,7 +66,7 @@ jobs:
           context: containers/${{ matrix.container }}
 
       - name: Push arch image(s)
-        uses: redhat-actions/push-to-registry@5860fc963bf8f2b3221773a023141612f010c469 # v2
+        uses: redhat-actions/push-to-registry@94ade333c38ecc0e60e94785125d9a52ca423b37 # v3
         with:
           tags: ${{ steps.meta.outputs.tags }}
           username: ${{ github.actor }}
@@ -75,7 +75,7 @@ jobs:
   manifest:
     name: Create & push multi-arch manifests
     needs: build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       matrix:
         container: *containers
@@ -89,10 +89,10 @@ jobs:
 
     steps:
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Login to GHCR (Docker)
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -101,7 +101,7 @@ jobs:
       # Destination (unsuffixed) tags: sha always; latest/date only on main.
       - name: Docker metadata (dest tags)
         id: meta_dest
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           images: ${{ env.IMAGE }}
           tags: |
@@ -112,7 +112,7 @@ jobs:
       # Recompute arch-specific SHA tags (same config as build, but only sha).
       - name: Docker metadata (amd64 source tag)
         id: meta_amd64
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           images: ${{ env.IMAGE }}
           tags: |
@@ -120,7 +120,7 @@ jobs:
 
       - name: Docker metadata (arm64 source tag)
         id: meta_arm64
-        uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
           images: ${{ env.IMAGE }}
           tags: |
